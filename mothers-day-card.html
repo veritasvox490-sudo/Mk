@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You: Happy Mother's Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FDF6EE;
+    --blush: #F2C4C0;
+    --rose: #D98E8A;
+    --dusty: #C47B7B;
+    --deep: #8B4A4A;
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --petal: #F7D9D7;
+    --sage: #9CAF88;
+    --text: #3D2C2C;
+    --text-light: #7A5C5C;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    font-family: 'Lato', sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ── Petal Rain ── */
+  #petal-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Bloom Intro ── */
+  #intro {
+    position: fixed;
+    inset: 0;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 1.2s ease, visibility 1.2s ease;
+  }
+  #intro.hidden { opacity: 0; visibility: hidden; }
+
+  .bloom-svg { width: 200px; height: 200px; }
+
+  .petal-path {
+    transform-origin: 100px 120px;
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+    transition: transform 0.8s cubic-bezier(0.34,1.56,0.64,1), opacity 0.6s ease;
+  }
+  .petal-path.open { transform: scale(1) rotate(0deg); opacity: 1; }
+
+  .intro-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    color: var(--text-light);
+    font-style: italic;
+    margin-top: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease 1.2s, transform 0.8s ease 1.2s;
+    letter-spacing: 0.05em;
+  }
+  .intro-text.show { opacity: 1; transform: translateY(0); }
+
+  .enter-btn {
+    margin-top: 2rem;
+    padding: 0.75rem 2.5rem;
+    background: transparent;
+    border: 1.5px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 40px;
+    opacity: 0;
+    transition: opacity 0.6s ease 2s, background 0.3s, color 0.3s;
+  }
+  .enter-btn.show { opacity: 1; }
+  .enter-btn:hover { background: var(--gold); color: white; }
+
+  /* ── Main Card ── */
+  #card {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem 5rem;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  #card.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    padding: 5rem 1rem 3rem;
+    position: relative;
+  }
+
+  .hero-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .ornament-line {
+    height: 1px;
+    width: 60px;
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .ornament-line.right {
+    background: linear-gradient(to left, transparent, var(--gold));
+  }
+  .ornament-diamond {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    font-weight: 400;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 8vw, 4.5rem);
+    font-weight: 500;
+    color: var(--deep);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--rose);
+  }
+
+  .hero-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: var(--text-light);
+    margin-top: 1rem;
+    line-height: 1.7;
+  }
+
+  /* ── Floral divider ── */
+  .floral-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2rem 0;
+    gap: 0.5rem;
+  }
+
+  /* ── Letter Section ── */
+  .letter-section {
+    background: white;
+    border-radius: 20px;
+    padding: clamp(2rem, 5vw, 3.5rem);
+    margin: 2rem 0;
+    box-shadow: 0 4px 40px rgba(180,120,120,0.08);
+    border: 1px solid rgba(201,169,110,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .letter-section::before {
+    content: '\201C';
+    font-family: 'Playfair Display', serif;
+    font-size: 12rem;
+    color: var(--petal);
+    position: absolute;
+    top: -2rem;
+    left: 1rem;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .letter-date {
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+  }
+
+  .letter-salutation {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 3vw, 1.6rem);
+    font-style: italic;
+    color: var(--deep);
+    margin-bottom: 1.5rem;
+  }
+
+  .letter-body {
+    font-size: clamp(0.95rem, 2vw, 1.05rem);
+    line-height: 1.95;
+    color: var(--text);
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+  }
+
+  .letter-body p { margin-bottom: 1.2rem; }
+  .letter-body p:last-child { margin-bottom: 0; }
+
+  .letter-body strong {
+    color: var(--deep);
+    font-weight: 700;
+  }
+
+  .letter-signature {
+    margin-top: 2rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--dusty);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--petal);
+  }
+
+  /* ── Garden Section ── */
+  .garden-section {
+    margin: 3rem 0;
+    text-align: center;
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: var(--deep);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-hint {
+    font-size: 0.88rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: 2.5rem;
+  }
+
+  .garden-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    justify-items: center;
+  }
+
+  .flower-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 1rem 0.5rem;
+    border-radius: 16px;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.2s;
+    width: 100%;
+    position: relative;
+  }
+  .flower-btn:hover { transform: scale(1.08) translateY(-3px); background: rgba(242,196,192,0.1); }
+  .flower-btn:active { transform: scale(0.97); }
+
+  .flower-icon { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .flower-btn:hover .flower-icon { transform: rotate(15deg) scale(1.1); }
+
+  .flower-label {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Bloom popup ── */
+  .bloom-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(61,44,44,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 1.5rem;
+  }
+  .bloom-popup.active { opacity: 1; visibility: visible; }
+
+  .bloom-card {
+    background: white;
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 360px;
+    width: 100%;
+    text-align: center;
+    transform: scale(0.85) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 20px 60px rgba(180,120,120,0.2);
+    border: 1px solid rgba(201,169,110,0.2);
+  }
+  .bloom-popup.active .bloom-card { transform: scale(1) translateY(0); }
+
+  .bloom-flower-large { margin-bottom: 1rem; }
+
+  .bloom-affirmation {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.05rem, 3vw, 1.25rem);
+    font-style: italic;
+    color: var(--deep);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .bloom-close {
+    background: var(--petal);
+    border: none;
+    color: var(--dusty);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.8rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'Lato', sans-serif;
+  }
+  .bloom-close:hover { background: var(--blush); }
+
+
+
+  /* ── Closing ── */
+  .closing-section {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    position: relative;
+  }
+
+  .closing-message {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: var(--deep);
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  .closing-message em { color: var(--rose); font-style: italic; }
+
+  .closing-sub {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  .closing-flower {
+    margin: 2rem auto 0;
+    width: 60px;
+    animation: sway 4s ease-in-out infinite;
+    transform-origin: center bottom;
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  /* ── Scroll fade-in ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .fade-up.in-view { opacity: 1; transform: translateY(0); }
+
+  /* ── Sparkle burst ── */
+  .sparkle-container {
+    position: fixed;
+    pointer-events: none;
+    z-index: 300;
+  }
+  .sparkle {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: sparkle-fly 0.8s ease-out forwards;
+  }
+  @keyframes sparkle-fly {
+    to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating petals -->
+<canvas id="petal-canvas"></canvas>
+
+<!-- Bloom intro -->
+<div id="intro">
+  <svg class="bloom-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Centre -->
+    <circle cx="100" cy="100" r="14" fill="#C9A96E" opacity="0.9"/>
+    <circle cx="100" cy="100" r="8" fill="#E8D5A3"/>
+    <!-- 6 petals -->
+    <g id="petals">
+      <ellipse class="petal-path" id="p0" cx="100" cy="62" rx="12" ry="28" fill="#F2C4C0"/>
+      <ellipse class="petal-path" id="p1" cx="134" cy="76" rx="12" ry="28" fill="#F7D9D7" transform="rotate(60,100,100)"/>
+      <ellipse class="petal-path" id="p2" cx="134" cy="124" rx="12" ry="28" fill="#F2C4C0" transform="rotate(120,100,100)"/>
+      <ellipse class="petal-path" id="p3" cx="100" cy="138" rx="12" ry="28" fill="#F7D9D7" transform="rotate(180,100,100)"/>
+      <ellipse class="petal-path" id="p4" cx="66" cy="124" rx="12" ry="28" fill="#F2C4C0" transform="rotate(240,100,100)"/>
+      <ellipse class="petal-path" id="p5" cx="66" cy="76" rx="12" ry="28" fill="#F7D9D7" transform="rotate(300,100,100)"/>
+    </g>
+  </svg>
+  <p class="intro-text">Something beautiful is opening for you…</p>
+  <button class="enter-btn" onclick="enterCard()">Open your gift</button>
+</div>
+
+<!-- Main card -->
+<div id="card">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-ornament">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line right"></div>
+    </div>
+    <p class="hero-eyebrow">With all my love</p>
+    <h1 class="hero-title">For the one who<br><em>helped me bloom</em></h1>
+    <p class="hero-subtitle">A small token for someone who has given me everything.</p>
+
+    <div class="floral-divider" style="margin-top:2.5rem">
+      <svg width="180" height="40" viewBox="0 0 180 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 20 Q30 5 60 20 Q90 35 120 20 Q150 5 180 20" stroke="#C9A96E" stroke-width="0.8" fill="none" opacity="0.5"/>
+        <circle cx="90" cy="20" r="3" fill="#C9A96E" opacity="0.7"/>
+        <circle cx="45" cy="20" r="2" fill="#D98E8A" opacity="0.6"/>
+        <circle cx="135" cy="20" r="2" fill="#D98E8A" opacity="0.6"/>
+        <!-- Mini flowers -->
+        <g transform="translate(20,14)">
+          <circle cx="0" cy="0" r="4" fill="#F2C4C0" opacity="0.7"/>
+          <circle cx="0" cy="-5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="4.3" cy="2.5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="-4.3" cy="2.5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="0" cy="0" r="1.5" fill="#C9A96E"/>
+        </g>
+        <g transform="translate(160,14)">
+          <circle cx="0" cy="0" r="4" fill="#F2C4C0" opacity="0.7"/>
+          <circle cx="0" cy="-5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="4.3" cy="2.5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="-4.3" cy="2.5" r="2.5" fill="#F7D9D7" opacity="0.7"/>
+          <circle cx="0" cy="0" r="1.5" fill="#C9A96E"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Letter -->
+  <section class="letter-section fade-up">
+    <p class="letter-date">May 11, 2025 &nbsp;·&nbsp; Written just for you</p>
+    <p class="letter-salutation">Akshita,</p>
+    <div class="letter-body">
+      <p>I could stand here for hours and still not find enough words to do justice to what you mean to me. But since I promised you a speech, I'll try my best to cram a whole world of feelings into a few minutes.</p>
+      <p>From the very first time you walked into my life, everything else just felt quieter. Like the world politely moved aside so I could notice you. You don't just fill a room; you brighten it. There's something about the way you carry yourself that is effortless and real: a quiet confidence wrapped in kindness. Your presence is warmth on a cold day and the quiet comfort of a place I want to come home to.</p>
+      <p>Let me talk about the little things, because the little things are everything. Your hair, whether it's falling in soft waves or shoved up in a messy bun, has this impossible talent for finding the exact spot on my shoulder to rest when you hug me. Your eyes are a whole conversation on their own: playful when you're teasing me, fierce when you're passionate about something you care about, and impossibly soft when you're being kind. And that smile of yours? It's not just beautiful. It's a map. I could get lost in it and happily ask for directions.</p>
+      <p>Your laugh is infectious in the best way. It starts in your chest and makes its way out like sunlight through leaves, and suddenly the stupidest joke seems brilliant and everything feels lighter. There's a spark in the way you smile with your whole face. It's honest, generous, and it makes me want to be better just so I can keep seeing it.</p>
+      <p>Let me tease you a little, because how would I be a proper boyfriend if I didn't? You have this adorable habit of stealing the last bit of whatever I was saving for myself, and somehow when you do it I'm not allowed to be annoyed. You'll look up with that smile, and I'm instantly disarmed. You tease me mercilessly about my overthinking, and then you turn around and catch my eye in the most serious moments, making me forget whatever I was worrying about. You're dangerously good at making me blush; I'm convinced you should carry a warning label.</p>
+      <p>But it's not all surface: the reasons I love you run so much deeper. You care fiercely about the people you love. You listen like every little thing I say matters, even the things I barely say to myself. You have a patience that calms my restless thoughts and a stubborn streak that inspires me when I need it most. Your curiosity makes every conversation an adventure; your compassion makes every success sweeter and every setback easier to bear. You see people, really see them, and you make people feel seen. That is a rare, beautiful gift.</p>
+      <p>You are clever and creative and strong in ways that don't always shout. They show up in the quiet consistency of your actions. You remember the small details, the ones most people forget, and you turn ordinary days into memories I'll keep forever. You have opinions and you stand by them, but you also know how to apologize and how to admit when you're wrong. You have a kindness that doesn't expect applause, and a courage that makes me want to be braver just by standing next to you.</p>
+      <p>And yes, you're beautiful. Beautiful in that way that can't be captured by a single compliment because your beauty is in your laughter, in the furrow of your brow when you concentrate, in the way your eyes light up when you talk about the things you love, and in the calmness of your hand in mine when everything else feels chaotic. Beautiful, but never untouchable. Approachable, warm, real. You are the kind of beautiful that makes me grateful every single day.</p>
+      <p>I love the little rituals we've made: the late-night talks that go until we both run out of words, the silly inside jokes that still make us giggle in public, the way we can be utterly silly and also deeply serious in the same afternoon. I love how you push me gently, sometimes not so gently, toward my goals, and how you celebrate my wins like they're your own. I love that we can be quiet together without it ever being awkward.</p>
+      <p>Looking forward, I don't pretend I know exactly how everything will unfold. But I do know this: I want you in every chapter. I want to share small victories and big failures, lazy weekends and wild adventures. I want to be the one who makes you tea on a rainy morning, who holds your hand through exams and interviews, who steals the blanket and shares it with the biggest grin. I want to be present in the mundane and present in the magical. This is not just a crush that will fade with a season; this is the beginning of something I plan on tending to, every single day.</p>
+      <p>So here's a little promise from me to you: I will keep learning you. Your moods, your dreams, your fears, the little things that make you light up and the little things that make you retreat. I will keep choosing you, even on the days when choosing is harder than it sounds. I will try imperfectly but relentlessly to be the kind of person who deserves the love you give. I will tease you just enough to keep you laughing, but hold you firm when you need it. I will celebrate you, champion you, and protect the space we share.</p>
+      <p>Akshita, you make me feel special in a way I didn't know was possible. You make ordinary moments glow. You make me proud and a little silly and completely, undeniably in love. If this is the beginning of my future, then I'm already excited for everything that comes next because you're in it.</p>
+      <p>Thank you for being you. Thank you for trusting me. Thank you for making my life brighter, funnier, and infinitely sweeter. I love you more than I can fit into one speech, but I'll spend the rest of my life trying.</p>
+    </div>
+    <p class="letter-signature">Always yours ✦</p>
+  </section>
+
+  <!-- Garden -->
+  <section class="garden-section fade-up">
+    <p class="section-label">A garden of reasons</p>
+    <h2 class="section-title">Why I love you</h2>
+    <p class="section-hint">Touch a flower to hear what it holds</p>
+
+    <div class="garden-grid" id="garden"></div>
+  </section>
+
+
+
+  <!-- Closing -->
+  <section class="closing-section fade-up">
+    <svg class="closing-flower" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="80" x2="30" y2="38" stroke="#9CAF88" stroke-width="2"/>
+      <ellipse cx="20" cy="58" rx="8" ry="4" fill="#9CAF88" opacity="0.6" transform="rotate(-30,20,58)"/>
+      <ellipse cx="40" cy="52" rx="8" ry="4" fill="#9CAF88" opacity="0.6" transform="rotate(30,40,52)"/>
+      <circle cx="30" cy="28" r="14" fill="#F2C4C0" opacity="0.3"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F2C4C0" opacity="0.8"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F7D9D7" opacity="0.6" transform="rotate(60,30,28)"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F2C4C0" opacity="0.7" transform="rotate(120,30,28)"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F7D9D7" opacity="0.6" transform="rotate(180,30,28)"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F2C4C0" opacity="0.7" transform="rotate(240,30,28)"/>
+      <ellipse cx="30" cy="16" rx="7" ry="14" fill="#F7D9D7" opacity="0.6" transform="rotate(300,30,28)"/>
+      <circle cx="30" cy="28" r="6" fill="#C9A96E"/>
+      <circle cx="30" cy="28" r="3" fill="#E8D5A3"/>
+    </svg>
+
+    <p class="closing-message" style="margin-top:1.5rem">
+      Happy Mother's Day,<br>
+      from <em>someone you helped bloom</em> 🌸
+    </p>
+    <p class="closing-sub">Thank you for being exactly who you are.</p>
+
+    <div style="margin-top:3rem; opacity:0.4;">
+      <svg width="100" height="20" viewBox="0 0 100 20" fill="none">
+        <path d="M5 10 Q25 2 50 10 Q75 18 95 10" stroke="#C9A96E" stroke-width="0.8" fill="none"/>
+      </svg>
+    </div>
+  </section>
+
+</div>
+
+<!-- Bloom popup -->
+<div class="bloom-popup" id="bloom-popup" onclick="closeBloom(event)">
+  <div class="bloom-card">
+    <div class="bloom-flower-large" id="popup-flower"></div>
+    <p class="bloom-affirmation" id="popup-text"></p>
+    <button class="bloom-close" onclick="closeBloomBtn()">Close ✦</button>
+  </div>
+</div>
+
+<script>
+// ── Garden data ──
+const flowers = [
+  { label: "Your patience", affirmation: "You never rushed me. You gave me room to become myself at my own pace, and that is one of the rarest gifts anyone has ever given me.", color: "#F2C4C0", center: "#C9A96E" },
+  { label: "Your belief", affirmation: "Your belief in me changed everything. On the days I couldn't see my own worth, you held the mirror steady. I am who I am because you never stopped believing.", color: "#F7D9D7", center: "#D98E8A" },
+  { label: "Your warmth", affirmation: "The warmth you carry is not something you perform. It simply radiates from you. Being near you has always felt like coming home.", color: "#FCDFD0", center: "#C9A96E" },
+  { label: "Your wisdom", affirmation: "You have a way of saying the right thing at exactly the right moment. Your quiet wisdom has guided me more times than you know.", color: "#F2C4C0", center: "#8B4A4A" },
+  { label: "Your laugh", affirmation: "The way you laugh, freely and fully, is one of the most beautiful things in my world. It makes everything feel lighter.", color: "#F7D9D7", center: "#C9A96E" },
+  { label: "Your care", affirmation: "You care so deeply, so genuinely. The little ways you show up: those details tell me everything about the size of your heart.", color: "#FCDFD0", center: "#D98E8A" },
+  { label: "Your grace", affirmation: "The grace with which you handle hard moments has taught me more about strength than anything else. You are quietly, beautifully resilient.", color: "#F2C4C0", center: "#C9A96E" },
+  { label: "Your love", affirmation: "Your love doesn't ask me to be perfect. It meets me where I am and grows alongside me. That is the most extraordinary thing I have ever received.", color: "#F7D9D7", center: "#8B4A4A" },
+];
+
+function makeFlowerSVG(color, center, size = 48) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.9"/>
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.8" transform="rotate(60,24,24)"/>
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.9" transform="rotate(120,24,24)"/>
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.8" transform="rotate(180,24,24)"/>
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.9" transform="rotate(240,24,24)"/>
+    <ellipse cx="24" cy="13" rx="7" ry="13" fill="${color}" opacity="0.8" transform="rotate(300,24,24)"/>
+    <circle cx="24" cy="24" r="7" fill="${center}" opacity="0.9"/>
+    <circle cx="24" cy="24" r="3.5" fill="#FDF6EE" opacity="0.8"/>
+  </svg>`;
+}
+
+// Build garden
+const garden = document.getElementById('garden');
+flowers.forEach((f, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'flower-btn';
+  btn.innerHTML = `
+    <div class="flower-icon">${makeFlowerSVG(f.color, f.center)}</div>
+    <span class="flower-label">${f.label}</span>
+  `;
+  btn.style.animationDelay = `${i * 0.1}s`;
+  btn.addEventListener('click', (e) => openBloom(f, e));
+  garden.appendChild(btn);
+});
+
+// ── Bloom popup ──
+function openBloom(f, e) {
+  document.getElementById('popup-flower').innerHTML = makeFlowerSVG(f.color, f.center, 72);
+  document.getElementById('popup-text').textContent = f.affirmation;
+  document.getElementById('bloom-popup').classList.add('active');
+  sparkle(e.clientX, e.clientY, f.color);
+}
+function closeBloom(e) {
+  if (e.target === document.getElementById('bloom-popup')) closeBloomBtn();
+}
+function closeBloomBtn() {
+  document.getElementById('bloom-popup').classList.remove('active');
+}
+
+// ── Sparkle burst ──
+function sparkle(x, y, color) {
+  const colors = [color, '#C9A96E', '#F7D9D7', '#D98E8A'];
+  for (let i = 0; i < 10; i++) {
+    const el = document.createElement('div');
+    el.className = 'sparkle';
+    const angle = (i / 10) * Math.PI * 2;
+    const dist = 30 + Math.random() * 50;
+    el.style.cssText = `left:${x}px;top:${y}px;background:${colors[i%colors.length]};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px;`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
+// ── Petal canvas ──
+const canvas = document.getElementById('petal-canvas');
+const ctx = canvas.getContext('2d');
+let petals = [];
+const PETAL_COLORS = ['#F2C4C0','#F7D9D7','#FCDFD0','#E8D5A3','#D98E8A'];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Petal {
+  constructor() { this.reset(true); }
+  reset(initial = false) {
+    this.x = Math.random() * canvas.width;
+    this.y = initial ? Math.random() * canvas.height : -20;
+    this.size = 4 + Math.random() * 8;
+    this.speedY = 0.5 + Math.random() * 1.2;
+    this.speedX = (Math.random() - 0.5) * 0.6;
+    this.rot = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.03;
+    this.opacity = 0.3 + Math.random() * 0.4;
+    this.color = PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)];
+    this.wobble = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.02 + Math.random() * 0.02;
+  }
+  update() {
+    this.wobble += this.wobbleSpeed;
+    this.x += this.speedX + Math.sin(this.wobble) * 0.5;
+    this.y += this.speedY;
+    this.rot += this.rotSpeed;
+    if (this.y > canvas.height + 20) this.reset();
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.globalAlpha = this.opacity;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size * 0.5, this.size, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+for (let i = 0; i < 28; i++) petals.push(new Petal());
+
+function animatePetals() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  petals.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animatePetals);
+}
+animatePetals();
+
+// ── Intro bloom animation ──
+const petalEls = document.querySelectorAll('.petal-path');
+let idx = 0;
+function openNextPetal() {
+  if (idx < petalEls.length) {
+    petalEls[idx].classList.add('open');
+    idx++;
+    setTimeout(openNextPetal, 120);
+  } else {
+    setTimeout(() => {
+      document.querySelector('.intro-text').classList.add('show');
+      setTimeout(() => {
+        document.querySelector('.enter-btn').classList.add('show');
+      }, 400);
+    }, 200);
+  }
+}
+setTimeout(openNextPetal, 400);
+
+function enterCard() {
+  document.getElementById('intro').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('card').classList.add('visible');
+  }, 300);
+}
+
+// ── Scroll observer ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in-view'); observer.unobserve(e.target); } });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+
+</script>
+</body>
+</html>
